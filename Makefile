@@ -39,19 +39,6 @@ version:
 	@echo "======================================================"
 	@echo $(REQUESTS_MV_INTGS_PKG) $(VERSION)
 
-# Install Python 3 via Homebrew.
-brew-python:
-	@echo "======================================================"
-	@echo brew-python
-	@echo "======================================================"
-	@echo $(shell which python3)
-	brew uninstall -f python3
-	@echo $(shell which python3)
-	brew update
-	brew install python3
-	@echo $(shell which python3)
-	$(PIP3) install --upgrade $(PY_MODULES)
-
 clean:
 	@echo "======================================================"
 	@echo clean $(PACKAGE)
@@ -82,16 +69,6 @@ uninstall-package: clean
 		echo "python package $(PACKAGE) Not Found"; \
 	fi
 
-install-requirements: clean
-	@echo "======================================================"
-	@echo install-requirements $(PACKAGE)
-	@echo "======================================================"
-	$(PIP3) install --upgrade pip
-	$(PIP3) install -r $(REQ_FILE)
-	$(PIP3) uninstall --yes --no-input -r $(REQ_FILE)
-	$(PIP3) install --upgrade -r $(REQ_FILE)
-	@echo "======================================================"
-
 site-packages:
 	@echo "======================================================"
 	@echo site-packages
@@ -111,13 +88,6 @@ install: remove-package
 	@echo "======================================================"
 	$(PIP3) install --upgrade pip
 	$(PIP3) install --upgrade $(WHEEL_ARCHIVE)
-	$(PIP3) freeze | grep $(PACKAGE)
-
-freeze:
-	@echo "======================================================"
-	@echo freeze $(PACKAGE)
-	@echo "======================================================"
-	$(PIP3) install --upgrade freeze
 	$(PIP3) freeze | grep $(PACKAGE)
 
 fresh: dist dist-update install
@@ -147,40 +117,13 @@ local-dev: remove-package
 	$(PIP3) freeze | grep $(PACKAGE)
 	@echo "======================================================"
 
-build: clean
-	@echo "======================================================"
-	@echo remove $(PACKAGE_PREFIX_WILDCARD) and $(PACKAGE_WILDCARD)
-	@echo "======================================================"
-	mkdir -p ./dist/
-	find ./dist/ -name $(PACKAGE_WILDCARD) -exec rm -vf {} \;
-	find ./dist/ -name $(PACKAGE_PREFIX_WILDCARD) -exec rm -vf {} \;
-	@echo "======================================================"
-	@echo build $(PACKAGE)
-	@echo "======================================================"
-	$(PIP3) install --upgrade -r $(REQ_FILE)
-	$(PYTHON3) $(SETUP_FILE) clean
-	$(PYTHON3) $(SETUP_FILE) bdist_wheel
-	$(PYTHON3) $(SETUP_FILE) bdist_egg
-	$(PYTHON3) $(SETUP_FILE) sdist --format=zip,gztar
-	$(PYTHON3) $(SETUP_FILE) build
-	$(PYTHON3) $(SETUP_FILE) install
-	@echo "======================================================"
-	ls -al ./dist/$(PACKAGE_PREFIX_WILDCARD)
-	@echo "======================================================"
-	$(PIP3) install --upgrade freeze
-	$(PIP3) install --upgrade .
-	@echo "======================================================"
-	$(PIP3) freeze | grep $(PACKAGE)
-	@echo "======================================================"
-
-dist: install-requirements
+dist: clean
 	@echo "======================================================"
 	@echo dist $(PACKAGE)
 	@echo "======================================================"
+	$(PIP3) install --upgrade -r requirements.txt
 	hub release create -m "$(PACKAGE_PREFIX)-$(VERSION)-$(PACKAGE_SUFFIX)" v$(VERSION)
-	$(PYTHON3) $(SETUP_FILE) bdist_wheel upload
-	$(PYTHON3) $(SETUP_FILE) bdist_egg upload
-	$(PYTHON3) $(SETUP_FILE) sdist --format=gztar upload
+	$(PYTHON3) $(SETUP_FILE) sdist bdist_wheel upload
 	@echo "======================================================"
 	ls -al ./dist/$(PACKAGE_PREFIX_WILDCARD)
 	@echo "======================================================"
@@ -235,22 +178,32 @@ list-package: site-packages
 	@echo "======================================================"
 	ls -al $(PYTHON3_SITE_PACKAGES)/$(PACKAGE_PREFIX)*
 
-run-examples:
+run-examples: local-dev
 	@echo "======================================================"
 	@echo run-examples $(PACKAGE)
 	@echo "======================================================"
-	@echo examples/example_safe_cast.py
-	@echo "======================================================"
 	@$(PYTHON3) examples/example_safe_cast.py
 
-test:
-	py.test tests
+test: local-dev
+	@echo "======================================================"
+	@echo py.test tests
+	@echo "======================================================"
+	py.test --verbose tests
 
 coverage:
-	py.test --verbose --cov-report html --cov=safe_cast tests
+	@echo "======================================================"
+	@echo py.test coverage
+	@echo "======================================================"
+	py.test --verbose --cov-report html --cov=$(PACKAGE_PREFIX) tests
 
 coverage-percent:
-	py.test --verbose --cov=safe_cast tests
+	@echo "======================================================"
+	@echo py.test coverage percent
+	@echo "======================================================"
+	py.test --verbose --cov=$(PACKAGE_PREFIX) tests
 
 list:
+	@echo "======================================================"
+	@echo Makefile target list
+	@echo "======================================================"
 	cat Makefile | grep "^[a-z]" | awk '{print $$1}' | sed "s/://g" | sort
