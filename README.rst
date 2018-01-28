@@ -26,7 +26,6 @@ Badges
     * - other
       - |requires|
 
-
 .. |docs| image:: https://readthedocs.org/projects/safe-cast/badge/?style=flat
     :target: http://safe-cast.readthedocs.io
     :alt: Documentation Status
@@ -45,7 +44,7 @@ Badges
 
 .. |travis| image:: https://travis-ci.org/tuneinc/safe-cast.svg?branch=master
     :target: https://travis-ci.org/tuneinc/safe-cast
-    :alt: Travis
+    :alt: Travis-CI Build Status
 
 .. |coveralls| image:: https://coveralls.io/repos/github/tuneinc/safe-cast/badge.svg?branch=master
     :target: https://coveralls.io/github/tuneinc/safe-cast?branch=master
@@ -64,6 +63,14 @@ Badges
     :alt: Supported versions
 
 .. end-badges
+
+
+Install
+-------
+
+.. code-block:: bash
+
+    pip install safe-cast
 
 
 Functions
